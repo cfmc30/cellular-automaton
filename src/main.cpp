@@ -1,9 +1,8 @@
-#include <ca.hpp>
-
 #include <unistd.h>
 
-int main()
-{
+#include <ca.hpp>
+
+int main() {
     Grid grid(30, 100);
     grid(0, 1) = Grid::ALIVE;
     grid(1, 2) = Grid::ALIVE;
@@ -15,7 +14,7 @@ int main()
     grid(10, 11 + 30) = Grid::ALIVE;
     grid(10, 12 + 30) = Grid::ALIVE;
 
-    Seq seq(grid);
+    Seq seq(grid, simd_update_func);
     for (int i = 0; i < 10000; i++) {
         std::cout << grid << std::endl;
         // print grid.data() address
@@ -24,6 +23,6 @@ int main()
         seq.simulate(1);
         usleep(100000);
     }
-    
+
     return 0;
 }
