@@ -3,7 +3,7 @@
 #include <ca.hpp>
 
 int main() {
-    Grid grid(30, 100);
+    Grid grid(50000, 50000);
     grid(0, 1) = Grid::ALIVE;
     grid(1, 2) = Grid::ALIVE;
     grid(2, 0) = Grid::ALIVE;
@@ -14,15 +14,11 @@ int main() {
     grid(10, 11 + 30) = Grid::ALIVE;
     grid(10, 12 + 30) = Grid::ALIVE;
 
-    Seq seq(grid, simd_update_func);
-    for (int i = 0; i < 10000; i++) {
-        std::cout << grid << std::endl;
-        // print grid.data() address
-        std::cout << (void *)grid.get_data(0, 0) << std::endl;
-
-        seq.simulate(1);
-        usleep(100000);
-    }
+    // Seq ca(grid, seq_update_func);
+    // Seq ca(grid, simd_update_func);
+    Omp ca(grid, simd_update_func);
+    // Omp ca(grid, seq_update_func);
+    ca.simulate(1);
 
     return 0;
 }
