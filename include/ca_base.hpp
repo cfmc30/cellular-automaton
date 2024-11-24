@@ -5,8 +5,6 @@
 #include <functional>
 #include <grid.hpp>
 
-using update_func_t =
-    std::function<void(uint8_t *, uint8_t *, uint8_t *, uint8_t *, uint8_t *,
-                       uint8_t *, uint8_t *, uint8_t *, uint8_t *, uint8_t *)>;
+using update_func_t = std::function<void(uint8_t*, Grid::neighbor_t &, uint8_t *)>;
 
 #endif
