@@ -1,6 +1,6 @@
 # Compiler and flags
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -Wextra -Iinclude -g -mavx2 -fopenmp
+CXXFLAGS = -std=c++17 -Wall -Wextra -Iinclude -g -mavx2 -fopenmp -pthread
 
 # Directories
 SRCDIR = src

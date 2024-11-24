@@ -20,7 +20,6 @@ class Grid {
 
     Grid(int rows, int cols);
     Grid(const Grid &);
-    Grid(Grid &&);
     ~Grid();
 
     uint8_t operator()(int row, int col) const;
@@ -62,6 +61,20 @@ class Grid {
                 get_data(row + 1, col),     get_data(row + 1, col + 1)};
     }
 
+    bool operator==(const Grid &other) const {
+        if (rows != other.rows || cols != other.cols) {
+            return false;
+        }
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                if ((*this)(i, j) != other(i, j)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     // overload << to print
     friend std::ostream &operator<<(std::ostream &os, const Grid &grid);
 };
@@ -88,6 +101,19 @@ Grid::Grid(int rows, int cols) : rows(rows), cols(cols) {
     real_cols = cols + margin_cols;
     data = new uint8_t[(rows + margin_rows) * (cols + margin_cols)];
     std::fill(data, data + (rows + margin_rows) * (cols + margin_cols), 0);
+}
+
+// Copy constructor
+Grid::Grid(const Grid &other)
+    : rows(other.rows),
+      cols(other.cols),
+      real_rows(other.real_rows),
+      real_cols(other.real_cols),
+      margin_rows(other.margin_rows),
+      margin_cols(other.margin_cols),
+      data(new uint8_t[(rows + margin_rows) * (cols + margin_cols)]) {
+    std::copy(other.data, other.data + (rows + margin_rows) * (cols + margin_cols),
+              data);
 }
 
 Grid::~Grid() { delete[] data; }

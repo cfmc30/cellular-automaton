@@ -22,8 +22,9 @@ class CA {
 
     ~CA() {};
 
-    void simulate(unsigned steps);
+    virtual void simulate(unsigned steps);
     size_t get_generation() { return generation; };
+    const Grid &get_grid() const { return grid; };
 };
 
 void CA::simulate(unsigned steps = 1) {
