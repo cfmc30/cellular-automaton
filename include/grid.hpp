@@ -11,10 +11,10 @@ class Grid {
     size_t rows, cols;
     size_t real_rows, real_cols;
     size_t margin_rows, margin_cols;
-    uint8_t* data;
+    uint8_t *data;
 
    public:
-    using neighbor_t = std::array<uint8_t*, 8>;
+    using neighbor_t = std::array<uint8_t *, 8>;
 
     enum state : uint8_t { DEAD = 0, ALIVE = 1 };
 
@@ -22,16 +22,15 @@ class Grid {
     Grid(const Grid &);
     Grid(Grid &&);
     ~Grid();
-    
 
     uint8_t operator()(int row, int col) const;
-    uint8_t& operator()(int row, int col);
+    uint8_t &operator()(int row, int col);
 
     // uint8_t* get_data() { return data; }
-    uint8_t* get_data(int row, int col) {
+    uint8_t *get_data(int row, int col) {
         return data + (row + 1) * real_cols + col + 1;
     }
-    uint8_t* get_data_by_row(int row) {
+    uint8_t *get_data_by_row(int row) {
         return data + (row + 1) * real_cols + 1;
     }
 
@@ -39,7 +38,7 @@ class Grid {
     size_t get_cols() { return cols; }
     size_t get_real_rows() { return real_rows; }
     size_t get_real_cols() { return real_cols; }
-    void swap(Grid& other) noexcept {
+    void swap(Grid &other) noexcept {
         std::swap(rows, other.rows);
         std::swap(cols, other.cols);
         std::swap(real_rows, other.real_rows);
@@ -57,28 +56,28 @@ class Grid {
         // +----+-----------+----+
         // | BL (5) |     B (6)    | BR (7) |
         // +----+-----------+----+
-        return {         get_data(row - 1, col - 1),
-                get_data(row - 1, col),     get_data(row - 1, col + 1),
-                get_data(row, col - 1),     get_data(row, col + 1),
-                get_data(row + 1, col - 1), get_data(row + 1, col),
-                get_data(row + 1, col + 1)};
+        return {get_data(row - 1, col - 1), get_data(row - 1, col),
+                get_data(row - 1, col + 1), get_data(row, col - 1),
+                get_data(row, col + 1),     get_data(row + 1, col - 1),
+                get_data(row + 1, col),     get_data(row + 1, col + 1)};
     }
 
     // overload << to print
-    friend std::ostream& operator<<(std::ostream& os, const Grid& grid);
+    friend std::ostream &operator<<(std::ostream &os, const Grid &grid);
 };
 
-std::ostream& operator<<(std::ostream& os, const Grid& grid) {
+std::ostream &operator<<(std::ostream &os, const Grid &grid) {
     for (int i = 0; i < grid.rows; i++) {
         for (int j = 0; j < grid.cols; j++) {
             os << (grid(i, j) ? '*' : ' ');
+            // os << (int)grid(i, j);
         }
         os << std::endl;
     }
     return os;
 }
 
-void swap(Grid& lhs, Grid& rhs) noexcept { lhs.swap(rhs); }
+void swap(Grid &lhs, Grid &rhs) noexcept { lhs.swap(rhs); }
 
 Grid::Grid(int rows, int cols) : rows(rows), cols(cols) {
     /* Compute margin size */
@@ -97,7 +96,7 @@ uint8_t Grid::operator()(int row, int col) const {
     return data[(row + 1) * real_cols + col + 1];
 }
 
-uint8_t& Grid::operator()(int row, int col) {
+uint8_t &Grid::operator()(int row, int col) {
     return data[(row + 1) * real_cols + col + 1];
 }
 
