@@ -7,5 +7,6 @@
 #include "grid.hpp"
 #include "omp.hpp"
 #include "seq.hpp"
+#include "multi_thread.hpp"
 
 #endif
