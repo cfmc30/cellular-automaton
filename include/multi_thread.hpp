@@ -78,7 +78,7 @@ void MultiThread::simulate(unsigned steps) {
     std::vector<ThreadData> thread_data(num_threads);
     // initialize thread data
     pthread_barrier_t barrier;
-    pthread_barrier_init(&barrier, NULL, num_threads);
+    pthread_barrier_init(&barrier, NULL, num_threads + 1);
     for (size_t i = 0; i < num_threads; i++) {
         thread_data[i].start = i * grid.get_rows() / num_threads;
         thread_data[i].end = (i + 1) * grid.get_rows() / num_threads;
@@ -98,7 +98,7 @@ void MultiThread::simulate(unsigned steps) {
                         &thread_data[i]);
     }
     for (size_t s = 0; s < steps; s++) {
-        // 兄弟快工作
+        // signal all threads to start
         for (size_t i = 0; i < num_threads; i++) {
             sem_post(&sems[i]);
         }
@@ -109,10 +109,13 @@ void MultiThread::simulate(unsigned steps) {
         swap(grid, next_grid);
         generation++;
     }
-    // 兄弟們收工
+    // signal all threads to finish
     for (size_t i = 0; i < num_threads; i++) {
         thread_data[i].is_done = true;
         sem_post(&sems[i]);
+    }
+    for (size_t i = 0; i < num_threads; i++) {
+        pthread_join(threads[i], NULL);
     }
     
 }
