@@ -1,0 +1,44 @@
+#!/bin/bash
+
+num_simulation=()
+output_dir=()
+filename=()
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -n|-N|--number)
+        if [[ $2 =~ ^[0-9]+$ ]]; then
+            num_simulation=$2
+            shift
+            shift
+        else
+            echo "error: Not a number :(" >&2
+            exit 1
+        fi
+        ;;
+    -o|-O|--output)
+        filename=$(awk -F/ '{print $NF}' <<< $2)
+        output_dir=${2%"$filename"}
+        if [ -z "${output_dir}" ]; then
+            output_dir="./"
+            shift
+            shift
+        elif [ ! -d "{$output_dir}" ]; then
+            echo "error: ${output_dir} does not exist :(" >&2
+            exit 1
+        else
+            shift
+            shift
+        fi
+        shift
+        shift
+        ;;
+    *|-*|--*)
+        echo "Usage: CA -n NUM_SIMULATION -o GIF_FILE"
+        exit 1
+        ;;
+  esac
+done
+
+make clean && make
+srun --mpi=pmix -N 16 main ${num_simulation} ${output_dir}${filename}
