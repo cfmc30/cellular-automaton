@@ -1,5 +1,6 @@
 # PP-F24 Final Project Cellular-Automaton (CA)
 A cool parallelization CA, which is able to generate Conway's Game of Life and output it as GIF format <br>
+![alt-text]([link](https://github.com/cfmc30/cellular-automaton/blob/dev/result_gif/simulate300.gif))
 # Implementation
 * non-parallel (sequence)
 * SIMD
