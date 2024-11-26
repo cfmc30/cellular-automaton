@@ -12,10 +12,11 @@ A cool parallelization CA, which is able to generate Conway's Game of Life and o
 git clone https://github.com/cfmc30/cellular-automaton.git
 cd cellular-automaton
 chmod 755 CA
-./CA -n NUM_SIMULATION -o GIF_FILE
+./CA -n NUM_SIMULATION [-o GIF_FILENAME] [-s ROWS COLS] [-t s|ms|us|ns] [-f csv|json FILENAME] 
 ```
 # Report
 # Others
 # Reference
 <https://github.com/gerzin/parallel-cellular-automata> <br>
 <https://github.com/charlietangora/gif-h>
+<https://github.com/google/benchmark.git>
