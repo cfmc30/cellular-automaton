@@ -11,6 +11,7 @@
 #include "ca_base.hpp"
 #include "update_funcs.hpp"
 
+extern int num_threads;
 
 struct ThreadData {
     size_t start;
@@ -26,6 +27,7 @@ struct ThreadData {
 class MultiThread : public CA {
    protected:
     void simulate_single();
+    int num_threads;
 
     static void *worker(void *arg) {
         // std::cout << "worker" << std::endl;
@@ -58,8 +60,8 @@ class MultiThread : public CA {
     }
 
    public:
-    MultiThread(Grid &grid, update_func_t update_func = seq_update_func)
-        : CA(grid, update_func) {};
+    MultiThread(Grid &grid, update_func_t update_func, int num_threads)
+        :num_threads(num_threads), CA(grid, update_func) {};
 
     void simulate(unsigned steps = 1) override;
 
@@ -67,7 +69,7 @@ class MultiThread : public CA {
 };
 
 void MultiThread::simulate(unsigned steps) {
-    const size_t num_threads = 16;
+    
     std::vector<pthread_t> threads(num_threads);
     // semaphores
     std::vector<sem_t> sems(num_threads);

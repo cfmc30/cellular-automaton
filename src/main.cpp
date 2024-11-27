@@ -20,10 +20,10 @@ public:
 };
 
 
-auto BM_CA = [](benchmark::State& state, auto ca) {
+auto BM_CA = [](benchmark::State& state, auto ca, auto times) {
   for (auto _ : state){
     //state.PauseTiming();
-    ca.simulate();
+    ca.simulate(times);
     //state.ResumeTiming();
   }
 };
@@ -63,6 +63,9 @@ int main(int argc, char** argv) {
   const size_t rows = atoi(argv[argc-4 - IsOutputGIF]);
   const size_t cols = atoi(argv[argc-3 - IsOutputGIF]);
 
+  int num_threads = atoi(argv[1]);
+
+
   srand(time(NULL));
 
   Grid grid(rows, cols);
@@ -94,31 +97,31 @@ int main(int argc, char** argv) {
   }else{
     ref_ca.simulate(simulate.times);
   }
+  Grid grid_mpi_seq = grid, grid_mpi_simd = grid;
+  Mpi mpi_seq_ca(grid_mpi_seq, seq_update_func);
+  Mpi mpi_simd_ca(grid_mpi_simd, simd_update_func);
+  ::benchmark::RegisterBenchmark("MPI_SEQ/" + std::to_string(simulate.times) + "/" + std::to_string(rows) + "/" + std::to_string(num_threads) , BM_CA, mpi_seq_ca, simulate.times)->Iterations(1);
+  ::benchmark::RegisterBenchmark("MPI_SIMD/" + std::to_string(simulate.times) + "/" + std::to_string(rows) + "/" + std::to_string(num_threads), BM_CA, mpi_simd_ca, simulate.times)->Iterations(1);
 
   
   Grid grid_seq_seq = grid, grid_seq_simd = grid;
   Seq seq_seq_ca(grid_seq_seq, seq_update_func);
   Seq seq_simd_ca(grid_seq_simd, simd_update_func);
-  ::benchmark::RegisterBenchmark("SEQ_SEQ", BM_CA, seq_seq_ca)->Iterations(simulate.times);
-  ::benchmark::RegisterBenchmark("SEQ_SIMD", BM_CA, seq_simd_ca)->Iterations(simulate.times);
+  ::benchmark::RegisterBenchmark("SEQ_SEQ/" + std::to_string(simulate.times) + "/" + std::to_string(rows) + "/" + std::to_string(num_threads), BM_CA, seq_seq_ca, simulate.times)->Iterations(1);
+  ::benchmark::RegisterBenchmark("SEQ_SIMD/" + std::to_string(simulate.times) + "/" + std::to_string(rows) + "/" + std::to_string(num_threads), BM_CA, seq_simd_ca, simulate.times)->Iterations(1);
 
   Grid grid_omp_seq = grid, grid_omp_simd = grid;
   Omp omp_seq_ca(grid_omp_seq, seq_update_func);
   Omp omp_simd_ca(grid_omp_simd, simd_update_func);
-  ::benchmark::RegisterBenchmark("OMP_SEQ", BM_CA, omp_seq_ca)->Iterations(simulate.times);
-  ::benchmark::RegisterBenchmark("OMP_SIMD", BM_CA, omp_simd_ca)->Iterations(simulate.times);
+  ::benchmark::RegisterBenchmark("OMP_SEQ/" + std::to_string(simulate.times) + "/" + std::to_string(rows) + "/" + std::to_string(num_threads), BM_CA, omp_seq_ca, simulate.times)->Iterations(1);
+  ::benchmark::RegisterBenchmark("OMP_SIMD/" + std::to_string(simulate.times) + "/" + std::to_string(rows) + "/" + std::to_string(num_threads), BM_CA, omp_simd_ca, simulate.times)->Iterations(1);
 
   Grid grid_multi_thread_seq = grid, grid_multi_thread_simd = grid;
-  MultiThread multi_thread_seq_ca(grid_multi_thread_seq, seq_update_func);
-  MultiThread multi_thread_simd_ca(grid_multi_thread_simd, simd_update_func);
-  ::benchmark::RegisterBenchmark("MULTI_THREAD_SEQ", BM_CA, multi_thread_seq_ca)->Iterations(simulate.times);
-  ::benchmark::RegisterBenchmark("MULTI_THREAD_SIMD", BM_CA, multi_thread_simd_ca)->Iterations(simulate.times);
+  MultiThread multi_thread_seq_ca(grid_multi_thread_seq, seq_update_func, num_threads);
+  MultiThread multi_thread_simd_ca(grid_multi_thread_simd, simd_update_func,num_threads);
+  ::benchmark::RegisterBenchmark("MULTI_THREAD_SEQ/" + std::to_string(simulate.times) + "/" + std::to_string(rows) + "/" + std::to_string(num_threads), BM_CA, multi_thread_seq_ca, simulate.times)->Iterations(1);
+  ::benchmark::RegisterBenchmark("MULTI_THREAD_SIMD/" + std::to_string(simulate.times) + "/" + std::to_string(rows) + "/" + std::to_string(num_threads), BM_CA, multi_thread_simd_ca, simulate.times)->Iterations(1);
 
-  Grid grid_mpi_seq = grid, grid_mpi_simd = grid;
-  Mpi mpi_seq_ca(grid_mpi_seq, seq_update_func);
-  Mpi mpi_simd_ca(grid_mpi_simd, simd_update_func);
-  ::benchmark::RegisterBenchmark("MPI_SEQ", BM_CA, mpi_seq_ca)->Iterations(simulate.times);
-  ::benchmark::RegisterBenchmark("MPI_SIMD", BM_CA, mpi_simd_ca)->Iterations(simulate.times);
 
   ::benchmark::Initialize(&argc, argv);   
 

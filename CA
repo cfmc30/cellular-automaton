@@ -8,6 +8,7 @@ col=()
 others=()
 csv_or_json_output_dir=()
 csv_or_json_filename=()
+num_threads=4
 IsOutputGIF="0"
 
 while [[ $# -gt 0 ]]; do
@@ -86,6 +87,16 @@ while [[ $# -gt 0 ]]; do
         shift
         shift
         ;;
+    -p|-P|--thread_num)
+        if [[ $2 =~ ^[0-9]+$ ]]; then
+            num_threads=$2
+            shift
+            shift
+        else
+            echo "error: Not a number :(" >&2
+            exit 1
+        fi
+        ;;
     *|-*|--*)
         echo -e "Usage: ./CA -n NUM_SIMULATION [-o GIF_FILENAME] [-s ROWS COLS] [-t s|ms|us|ns] [-f csv|json FILENAME] \n
 Available Options: \n
@@ -124,4 +135,6 @@ fi
 #echo ${csv_or_json_filename}
 
 make clean && make
-srun --mpi=pmix -N 2 main ${others} ${row} ${col} ${num_simulation} ${gif_output_dir}${gif_filename} ${IsOutputGIF}
+echo srun --mpi=pmix -c ${num_threads} -N ${num_threads} main ${num_threads} ${others} ${row} ${col} ${num_simulation} ${gif_output_dir}${gif_filename} ${IsOutputGIF}
+ 
+srun --mpi=pmix -c ${num_threads} -N ${num_threads} main ${num_threads} ${others} ${row} ${col} ${num_simulation} ${gif_output_dir}${gif_filename} ${IsOutputGIF}
