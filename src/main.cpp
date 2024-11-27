@@ -1,3 +1,4 @@
+#include <benchmark/benchmark.h>
 #include <sys/time.h>
 #include <unistd.h>
 #include <mpi.h>
@@ -6,27 +7,26 @@
 #include <math.h>
 
 struct Simulate{
-    const int times;
-    Simulate(int t) : times(t){}
+  const int times;
+  Simulate(int t) : times(t){}
 };
 
-void print_result(bool result);
+class NullReporter : public ::benchmark::BenchmarkReporter {
+public:
+  NullReporter() {}
+  virtual bool ReportContext(const Context &) {return true;}
+  virtual void ReportRuns(const std::vector<Run> &) {}
+  virtual void Finalize() {}
+};
 
-bool test_ca(CA &ca, std::string ca_name, std::string fn_name, Grid &ans, const int times) {
-    struct timeval start, end;
-    gettimeofday(&start, NULL);
-    ca.simulate(times);
-    gettimeofday(&end, NULL);
 
-    std::cout << ca_name << " " << "Update func: " << fn_name << " Time: "
-              << (end.tv_sec - start.tv_sec) +
-                     (double)(end.tv_usec - start.tv_usec) / (1000 * 1000)
-              << " sec" << std::endl;
-    bool result = ca.get_grid() == ans;
-    // std::cout << ca.get_grid() << std::endl << ans << std::endl;
-    print_result(result);
-    return ca.get_grid() == ans;
-}
+auto BM_CA = [](benchmark::State& state, auto ca) {
+  for (auto _ : state){
+    //state.PauseTiming();
+    ca.simulate();
+    //state.ResumeTiming();
+  }
+};
 
 void print_result(bool result) {
     if (result == false) {
@@ -43,88 +43,118 @@ void print_result(bool result) {
     }
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {     
 
-    MPI_Init(NULL, NULL);
-    int world_rank, world_size;
-    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
-    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+  MPI_Init(NULL, NULL);
+  int world_rank, world_size;
+  MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+  MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
 
-    if (world_rank > 0) return 0;
+  char arg0_default[] = "benchmark";                                  
+  char* args_default = arg0_default;                                  
+  if (!argv) {                                                        
+    argc = 1;                                                         
+    argv = &args_default;                                             
+  }                                                                   
 
-    Simulate simulate(atoi(argv[1]));
-    srand(time(NULL));
-    const size_t rows = 1000;
-    const size_t cols = 1000;
+  int IsOutputGIF = atoi(argv[argc-1]);
 
-    Grid grid(rows, cols);
-    // grid(0, 1) = Grid::ALIVE;
-    // grid(1, 2) = Grid::ALIVE;
-    // grid(2, 0) = Grid::ALIVE;
-    // grid(2, 1) = Grid::ALIVE;
-    // grid(2, 2) = Grid::ALIVE;
+  Simulate simulate(atoi(argv[argc-2 - IsOutputGIF]));
+  const size_t rows = atoi(argv[argc-4 - IsOutputGIF]);
+  const size_t cols = atoi(argv[argc-3 - IsOutputGIF]);
 
-    // grid(10, 10 + 30) = Grid::ALIVE;
-    // grid(10, 11 + 30) = Grid::ALIVE;
-    // grid(10, 12 + 30) = Grid::ALIVE;
+  srand(time(NULL));
 
-    // random generate input
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < cols; j++) {
-            grid(i, j) = rand() % 2;
-        }
-    }
+  Grid grid(rows, cols);
 
-    Grid ref_grid = grid;
-    Grid ans_grid = grid;
-    Seq ref_ca(ans_grid, seq_update_func);
+  /*
+  grid(0, 1) = Grid::ALIVE;
+  grid(1, 2) = Grid::ALIVE;
+  grid(2, 0) = Grid::ALIVE;
+  grid(2, 1) = Grid::ALIVE;
+  grid(2, 2) = Grid::ALIVE;
+  */
 
+  // grid(10, 10 + 30) = Grid::ALIVE;
+  // grid(10, 11 + 30) = Grid::ALIVE;
+  // grid(10, 12 + 30) = Grid::ALIVE;
+
+  // random generate input
+  for (int i = 0; i < rows; i++) {
+      for (int j = 0; j < cols; j++) {
+          grid(i, j) = rand() % 2;
+      }
+  }
+
+  Grid grid_ref = grid;
+  Seq ref_ca(grid_ref, seq_update_func);
+
+  if (IsOutputGIF){
+    ref_ca.simulate_single_with_output(argv[argc-2], simulate.times);
+  }else{
+    ref_ca.simulate(simulate.times);
+  }
+
+  
+  Grid grid_seq_seq = grid, grid_seq_simd = grid;
+  Seq seq_seq_ca(grid_seq_seq, seq_update_func);
+  Seq seq_simd_ca(grid_seq_simd, simd_update_func);
+  ::benchmark::RegisterBenchmark("SEQ_SEQ", BM_CA, seq_seq_ca)->Iterations(simulate.times);
+  ::benchmark::RegisterBenchmark("SEQ_SIMD", BM_CA, seq_simd_ca)->Iterations(simulate.times);
+
+  Grid grid_omp_seq = grid, grid_omp_simd = grid;
+  Omp omp_seq_ca(grid_omp_seq, seq_update_func);
+  Omp omp_simd_ca(grid_omp_simd, simd_update_func);
+  ::benchmark::RegisterBenchmark("OMP_SEQ", BM_CA, omp_seq_ca)->Iterations(simulate.times);
+  ::benchmark::RegisterBenchmark("OMP_SIMD", BM_CA, omp_simd_ca)->Iterations(simulate.times);
+
+  Grid grid_multi_thread_seq = grid, grid_multi_thread_simd = grid;
+  MultiThread multi_thread_seq_ca(grid_multi_thread_seq, seq_update_func);
+  MultiThread multi_thread_simd_ca(grid_multi_thread_simd, simd_update_func);
+  ::benchmark::RegisterBenchmark("MULTI_THREAD_SEQ", BM_CA, multi_thread_seq_ca)->Iterations(simulate.times);
+  ::benchmark::RegisterBenchmark("MULTI_THREAD_SIMD", BM_CA, multi_thread_simd_ca)->Iterations(simulate.times);
+
+  Grid grid_mpi_seq = grid, grid_mpi_simd = grid;
+  Mpi mpi_seq_ca(grid_mpi_seq, seq_update_func);
+  Mpi mpi_simd_ca(grid_mpi_simd, simd_update_func);
+  ::benchmark::RegisterBenchmark("MPI_SEQ", BM_CA, mpi_seq_ca)->Iterations(simulate.times);
+  ::benchmark::RegisterBenchmark("MPI_SIMD", BM_CA, mpi_simd_ca)->Iterations(simulate.times);
+
+  ::benchmark::Initialize(&argc, argv);   
+
+  if (world_rank == 0){
+    
     std::cout << "Generating random testcase and its solution..." << std::endl;
-
-    ref_ca.simulate_single_with_output(argv[2], simulate.times);
-    //ref_ca.simulate(simulate.times);
-
-    std::vector<update_func_t> funcs = {seq_update_func, simd_update_func};
-    std::vector<std::string> func_names = {"seq", "simd"};
-    // test seq with simd
-    
     std::cout << "Start testing..." << std::endl;
-    
-    // test seq
-    for (size_t i = 0; i < funcs.size(); i++) {
-        Grid grid = ref_grid;
-        // std::cout << grid << std::endl;
-        Seq seq_ca(grid, funcs[i]);
-        test_ca(seq_ca, "Seq", func_names[i], ans_grid, simulate.times);
-        
-    }
-    // test omp
-    for (size_t i = 0; i < funcs.size(); i++) {
-        Grid grid = ref_grid;
-        // std::cout << grid << std::endl;
-        Omp omp_ca(grid, funcs[i]);
-        test_ca(omp_ca, "Omp", func_names[i], ans_grid, simulate.times);
-    }
 
-    // test multi_thread
-    for (size_t i = 0; i < funcs.size(); i++) {
-        Grid grid = ref_grid;
-        // std::cout << grid << std::endl;
-        MultiThread mt_ca(grid, funcs[i]);
-        test_ca(mt_ca, "MultiThread", func_names[i], ans_grid, simulate.times);
-    }
+    ::benchmark::RunSpecifiedBenchmarks(); 
 
-    //test mpi
-    for (size_t i = 0; i < funcs.size(); i++) {
-        Grid grid = ref_grid;
-        // std::cout << grid << std::endl;
-        Seq seq_ca(grid, funcs[i]);
-        test_ca(seq_ca, "Mpi", func_names[i], ans_grid, simulate.times);
-        
-    }
+    std::cout << "seq Update func: seq" << std::endl;
+    print_result(grid_seq_seq == grid_ref);
+    std::cout << "seq Update func: simd" << std::endl;
+    print_result(grid_seq_simd == grid_ref);
+    std::cout << "omp Update func: seq" << std::endl;
+    print_result(grid_omp_seq == grid_ref);
+    std::cout << "omp Update func: simd" << std::endl;
+    print_result(grid_omp_simd == grid_ref);
+    std::cout << "multi_thread Update func: seq" << std::endl;
+    print_result(grid_multi_thread_seq == grid_ref);
+    std::cout << "multi_thread Update func: simd" << std::endl;
+    print_result(grid_multi_thread_simd == grid_ref);
+    std::cout << "mpi Update func: seq" << std::endl;
+    print_result(grid_mpi_seq == grid_ref);
+    std::cout << "mpi Update func: simd" << std::endl;
+    print_result(grid_mpi_simd == grid_ref);
 
-    // Omp ca(grid, simd_update_func);
-    // Omp ca(grid, seq_update_func);
+  }
+  else{
+    NullReporter null;
+    ::benchmark::RunSpecifiedBenchmarks(&null);
+  }
 
-    return 0;
-}
+  ::benchmark::Shutdown();  
+
+  MPI_Finalize();
+
+  return 0;                                                           
+} 

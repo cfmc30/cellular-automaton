@@ -1,0 +1,15 @@
+# This is a generated file and its contents are an internal implementation detail.
+# The download step will be re-executed if anything in this file changes.
+# No other meaning or use of this file is supported.
+
+method=git
+command=/opt/spack/opt/spack/linux-debian12-skylake/gcc-12.2.0/cmake-3.30.2-6j26urzdz24bjzaaynvuts3hi4hl5bkp/bin/cmake;-DCMAKE_MESSAGE_LOG_LEVEL=VERBOSE;-P;/home/110550069/final/benchmark/build/third_party/googletest/tmp/googletest-gitclone.cmake
+source_dir=/home/110550069/final/benchmark/build/third_party/googletest/src
+work_dir=/home/110550069/final/benchmark/build/third_party/googletest
+repository=https://github.com/google/googletest.git
+remote=origin
+init_submodules=TRUE
+recurse_submodules=--recursive
+submodules=
+CMP0097=NEW
+      

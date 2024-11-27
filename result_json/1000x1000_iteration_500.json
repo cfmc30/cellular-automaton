@@ -1,0 +1,154 @@
+{
+  "context": {
+    "date": "2024-11-27T11:44:25+08:00",
+    "host_name": "hpc053",
+    "executable": "main",
+    "num_cpus": 6,
+    "mhz_per_cpu": 3096,
+    "cpu_scaling_enabled": false,
+    "caches": [
+      {
+        "type": "Data",
+        "level": 1,
+        "size": 32768,
+        "num_sharing": 1
+      },
+      {
+        "type": "Instruction",
+        "level": 1,
+        "size": 32768,
+        "num_sharing": 1
+      },
+      {
+        "type": "Unified",
+        "level": 2,
+        "size": 4194304,
+        "num_sharing": 1
+      },
+      {
+        "type": "Unified",
+        "level": 3,
+        "size": 16777216,
+        "num_sharing": 6
+      }
+    ],
+    "load_avg": [1.36084,1.18652,0.682129],
+    "library_version": "v1.9.0-21-g62a321d6",
+    "library_build_type": "release",
+    "json_schema_version": 1
+  },
+  "benchmarks": [
+    {
+      "name": "SEQ_SEQ/iterations:500",
+      "family_index": 0,
+      "per_family_instance_index": 0,
+      "run_name": "SEQ_SEQ/iterations:500",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 500,
+      "real_time": 3.0337980609387159e-02,
+      "cpu_time": 3.0337819584000003e-02,
+      "time_unit": "s"
+    },
+    {
+      "name": "SEQ_SIMD/iterations:500",
+      "family_index": 1,
+      "per_family_instance_index": 0,
+      "run_name": "SEQ_SIMD/iterations:500",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 500,
+      "real_time": 5.0150150451809166e-03,
+      "cpu_time": 5.0149230379999922e-03,
+      "time_unit": "s"
+    },
+    {
+      "name": "OMP_SEQ/iterations:500",
+      "family_index": 2,
+      "per_family_instance_index": 0,
+      "run_name": "OMP_SEQ/iterations:500",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 500,
+      "real_time": 3.0341707715764641e-02,
+      "cpu_time": 3.0341521114000004e-02,
+      "time_unit": "s"
+    },
+    {
+      "name": "OMP_SIMD/iterations:500",
+      "family_index": 3,
+      "per_family_instance_index": 0,
+      "run_name": "OMP_SIMD/iterations:500",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 500,
+      "real_time": 5.0341298040002588e-03,
+      "cpu_time": 5.0341123500000006e-03,
+      "time_unit": "s"
+    },
+    {
+      "name": "MULTI_THREAD_SEQ/iterations:500",
+      "family_index": 4,
+      "per_family_instance_index": 0,
+      "run_name": "MULTI_THREAD_SEQ/iterations:500",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 500,
+      "real_time": 3.1000078614801169e-02,
+      "cpu_time": 3.6493875399999355e-04,
+      "time_unit": "s"
+    },
+    {
+      "name": "MULTI_THREAD_SIMD/iterations:500",
+      "family_index": 5,
+      "per_family_instance_index": 0,
+      "run_name": "MULTI_THREAD_SIMD/iterations:500",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 500,
+      "real_time": 5.6127776615321635e-03,
+      "cpu_time": 3.5898016800000221e-04,
+      "time_unit": "s"
+    },
+    {
+      "name": "MPI_SEQ/iterations:500",
+      "family_index": 6,
+      "per_family_instance_index": 0,
+      "run_name": "MPI_SEQ/iterations:500",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 500,
+      "real_time": 3.2123186107724903e-02,
+      "cpu_time": 3.2121415209999983e-02,
+      "time_unit": "s"
+    },
+    {
+      "name": "MPI_SIMD/iterations:500",
+      "family_index": 7,
+      "per_family_instance_index": 0,
+      "run_name": "MPI_SIMD/iterations:500",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 500,
+      "real_time": 1.8674458794295787e-02,
+      "cpu_time": 1.8673751198000018e-02,
+      "time_unit": "s"
+    }
+  ]
+}

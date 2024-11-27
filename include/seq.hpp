@@ -45,11 +45,11 @@ void Seq::simulate_single_with_output(const char* filename, unsigned steps = 1) 
     static uint8_t* image;
     image = new uint8_t[rows * cols * 4];
     GifWriter writer = {};
-    GifBegin( &writer, filename, cols, rows, 5, 8, true );
+    GifBegin( &writer, filename, cols, rows, 0, 8, true );
 
-    std::cout << "Output GIF file:" << std::endl;
+    std::cout << "Outputing as GIF file..." << std::endl;
 
-    for (int step = 0; step < steps; step++){
+    for (size_t step = 0; step < steps; step++){
 
         for (size_t i = 0; i < rows; i++) {
             /* Iterator over row increase */
@@ -86,7 +86,7 @@ void Seq::simulate_single_with_output(const char* filename, unsigned steps = 1) 
             }
         }
 
-        std::cout << "Writing frame " << step << "..." << std::endl;
+        //std::cout << "Writing frame " << step << "..." << std::endl;
         GifWriteFrame( &writer, image, cols, rows, 2, 8, true );
 
         swap(grid, next_grid);
@@ -94,7 +94,7 @@ void Seq::simulate_single_with_output(const char* filename, unsigned steps = 1) 
 
     }
 
-    std::cout << "Writing frame " << steps << "..." << std::endl;
+    //std::cout << "Writing frame " << steps << "..." << std::endl;
     GifWriteFrame( &writer, image, cols, rows, 2, 8, true );
 
     GifEnd(&writer);

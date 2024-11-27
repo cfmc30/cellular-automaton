@@ -23,7 +23,8 @@
 
 #define START 0
 #define END 1
-#define DONE 2
+#define ROW 2
+#define GRID 3
 
 class Mpi : public CA {
    protected:
@@ -44,22 +45,24 @@ void Mpi::simulate_single() {
 
     size_t rows = grid.get_rows();
     size_t cols = grid.get_cols();
-    size_t each_cols = cols / world_size;
+    size_t real_cols = grid.get_real_cols();
+    size_t each_rows = rows / world_size;
 
     size_t Start, End;
 
     if (world_rank == 0){
 
         for (int i = 1; i < world_size; i++){
-            Start = (i - 1) * each_cols;
-            End = Start + each_cols;
+            Start = (i - 1) * each_rows;
+            End = Start + each_rows;
             MPI_Send(&Start, 1, my_MPI_SIZE_T, i, END, MPI_COMM_WORLD);
             MPI_Send(&End, 1, my_MPI_SIZE_T, i, START, MPI_COMM_WORLD);
+            MPI_Send(grid.get_data(0, 0), rows * real_cols, MPI_UINT8_T, i, GRID, MPI_COMM_WORLD);
         }
 
-        for (size_t i = 0; i < rows; i++) {
+        for (size_t i = (world_size - 1) * each_rows; i < rows; i++) {
             /* Iterator over row increase by vector size */
-            for (size_t j = (world_size - 1) * each_cols; j < cols; j += 32) {
+            for (size_t j = 0; j < cols; j += 32) {
                 uint8_t *center = grid.get_data(i, j);
                 uint8_t *out = next_grid.get_data(i, j);
                 auto neighbors = grid.get_neighbors(i, j);
@@ -68,10 +71,9 @@ void Mpi::simulate_single() {
         }
 
         MPI_Request requests[world_size - 1];
-        int* dones = new int[world_size - 1];
 
         for (int i = 1; i < world_size; i++){
-            MPI_Irecv(&dones[i - 1], 1, MPI_INT, i, DONE, MPI_COMM_WORLD, &requests[i - 1]);
+            MPI_Irecv(&next_grid( (i-1) * each_rows, 0), each_rows * real_cols, MPI_UINT8_T, i, ROW, MPI_COMM_WORLD, &requests[i - 1]);
         }
 
         MPI_Waitall(world_size - 1, &requests[0], MPI_STATUS_IGNORE);
@@ -85,18 +87,21 @@ void Mpi::simulate_single() {
         MPI_Recv(&Start, 1, my_MPI_SIZE_T, 0, END, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         MPI_Recv(&End, 1, my_MPI_SIZE_T, 0, START, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
-        for (size_t i = 0; i < rows; i++) {
+        Grid whole_grid(rows, cols);
+        MPI_Recv(whole_grid.get_data(0, 0), rows * real_cols, MPI_UINT8_T, 0, GRID, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+        Grid tmp(End - Start, cols);
+
+        for (size_t i = Start; i < End; i++) {
             /* Iterator over row increase by vector size */
-            for (size_t j = Start; j < End; j += 32) {
-                uint8_t *center = grid.get_data(i, j);
-                uint8_t *out = next_grid.get_data(i, j);
-                auto neighbors = grid.get_neighbors(i, j);
+            for (size_t j = 0; j < cols; j += 32) {
+                uint8_t *center = whole_grid.get_data(i, j);
+                uint8_t *out = tmp.get_data(i - Start, j);
+                auto neighbors = whole_grid.get_neighbors(i, j);
                 update_func(center, neighbors, out);
             }
         }
-        int done = 1;
-
-        MPI_Send(&done, 1, MPI_INT, 0, DONE, MPI_COMM_WORLD);
+        MPI_Send(tmp.get_data(0, 0), (End - Start) * real_cols, MPI_UINT8_T, 0, ROW, MPI_COMM_WORLD);
 
     }
 

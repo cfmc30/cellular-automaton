@@ -1,11 +1,64 @@
 #!/bin/bash
 
 num_simulation=()
-output_dir=()
-filename=()
+gif_output_dir=()
+gif_filename=()
+row=()
+col=()
+others=()
+csv_or_json_output_dir=()
+csv_or_json_filename=()
+IsOutputGIF="0"
 
 while [[ $# -gt 0 ]]; do
   case $1 in
+    -f|-F|--file_format)
+        if [[ ! $2 =~ ^(csv|json)$ ]]; then
+            echo "error: ${2} is Not an available file format :(" >&2
+            exit 1
+        else
+            others+="--benchmark_format=${2} "
+            csv_or_json_filename=$(awk -F/ '{print $NF}' <<< $3)
+            if [ -z "${csv_or_json_filename}" ]; then
+                echo "error: must have file name :(" >&2
+                exit 1 
+            fi
+            csv_or_json_output_dir=${3%"$csv_or_json_filename"}
+            if [ -z "${csv_or_json_output_dir}" ]; then
+                csv_or_json_output_dir="./"
+            elif [ ! -d "${csv_or_json_output_dir}" ]; then
+                echo "error: ${csv_or_json_output_dir} does not exist :(" >&2
+                exit 1
+            fi
+            others+="--benchmark_out=${csv_or_json_output_dir}${csv_or_json_filename} "
+
+            shift
+            shift
+            shift
+        fi
+        ;;
+    -t|-T|--time_unit)
+        if [[ ! $2 =~ ^(s|ms|us|ns)$ ]]; then
+            echo "error: ${2} is Not a time unit :(" >&2
+            exit 1
+        else
+            others+="--benchmark_time_unit=${2} "
+            shift
+            shift
+        fi
+        ;;
+    -s|-S|--size)
+        if [[ $2 =~ ^[0-9]+$ ]] && [[ $3 =~ ^[0-9]+$ ]]; then
+            row=$2
+            col=$3
+            shift 
+            shift
+            shift
+        else
+            echo "error: ${2} or ${3} is Not a number :(" >&2
+            exit 1
+        fi
+        ;;
     -n|-N|--number)
         if [[ $2 =~ ^[0-9]+$ ]]; then
             num_simulation=$2
@@ -17,28 +70,58 @@ while [[ $# -gt 0 ]]; do
         fi
         ;;
     -o|-O|--output)
-        filename=$(awk -F/ '{print $NF}' <<< $2)
-        output_dir=${2%"$filename"}
-        if [ -z "${output_dir}" ]; then
-            output_dir="./"
-            shift
-            shift
-        elif [ ! -d "{$output_dir}" ]; then
-            echo "error: ${output_dir} does not exist :(" >&2
+        IsOutputGIF="1"
+        gif_filename=$(awk -F/ '{print $NF}' <<< $2)
+        if [ -z "${gif_filename}" ]; then
+            echo "error: must have file name :(" >&2
+            exit 1 
+        fi
+        gif_output_dir=${2%"$gif_filename"}
+        if [ -z "${gif_output_dir}" ]; then
+            gif_output_dir="./"
+        elif [ ! -d "${gif_output_dir}" ]; then
+            echo "error: ${gif_output_dir} does not exist :(" >&2
             exit 1
-        else
-            shift
-            shift
         fi
         shift
         shift
         ;;
     *|-*|--*)
-        echo "Usage: CA -n NUM_SIMULATION -o GIF_FILE"
+        echo -e "Usage: ./CA -n NUM_SIMULATION [-o GIF_FILENAME] [-s ROWS COLS] [-t s|ms|us|ns] [-f csv|json FILENAME] \n
+Available Options: \n
+-n: Iteration times
+-o: Output grid as GIF file
+-s: Size of grid (rows x cols) (default: 320 x 320)
+-t: Time unit (default: ns)
+-f: Output result as csv or json file or in console (default: console)"
         exit 1
         ;;
   esac
 done
 
+
+
+if [ -z "${num_simulation}" ]; then
+    echo "error: must include iteration times :(" >&2
+    exit 1
+fi
+
+if [ -z "${row}" ]; then
+    row="320"
+fi
+
+if [ -z "${col}" ]; then
+    col="320"
+fi
+
+#echo ${num_simulation}
+#echo ${gif_output_dir}
+#echo ${gif_filename}
+#echo ${row}
+#echo ${col}
+#echo ${others}
+#echo ${csv_or_json_output_dir}
+#echo ${csv_or_json_filename}
+
 make clean && make
-srun --mpi=pmix -N 16 main ${num_simulation} ${output_dir}${filename}
+srun --mpi=pmix -N 2 main ${others} ${row} ${col} ${num_simulation} ${gif_output_dir}${gif_filename} ${IsOutputGIF}

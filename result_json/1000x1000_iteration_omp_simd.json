@@ -1,0 +1,84 @@
+{
+  "context": {
+    "date": "2024-11-27T08:22:57+08:00",
+    "host_name": "hpc061",
+    "executable": "main",
+    "num_cpus": 4,
+    "mhz_per_cpu": 3408,
+    "cpu_scaling_enabled": false,
+    "caches": [
+      {
+        "type": "Data",
+        "level": 1,
+        "size": 32768,
+        "num_sharing": 1
+      },
+      {
+        "type": "Instruction",
+        "level": 1,
+        "size": 32768,
+        "num_sharing": 1
+      },
+      {
+        "type": "Unified",
+        "level": 2,
+        "size": 4194304,
+        "num_sharing": 1
+      },
+      {
+        "type": "Unified",
+        "level": 3,
+        "size": 16777216,
+        "num_sharing": 4
+      }
+    ],
+    "load_avg": [0.0249023,0.0961914,0.15918],
+    "library_version": "v1.9.0-21-g62a321d6",
+    "library_build_type": "release",
+    "json_schema_version": 1
+  },
+  "benchmarks": [
+    {
+      "name": "OMP_SIMD_10/iterations:10",
+      "family_index": 0,
+      "per_family_instance_index": 0,
+      "run_name": "OMP_SIMD_10/iterations:10",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 10,
+      "real_time": 6.1118630692362785e-03,
+      "cpu_time": 6.1118051000000062e-03,
+      "time_unit": "s"
+    },
+    {
+      "name": "OMP_SIMD_100/iterations:100",
+      "family_index": 1,
+      "per_family_instance_index": 0,
+      "run_name": "OMP_SIMD_100/iterations:100",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 100,
+      "real_time": 5.9909568075090644e-03,
+      "cpu_time": 5.9907896799999997e-03,
+      "time_unit": "s"
+    },
+    {
+      "name": "OMP_SIMD_1000/iterations:1000",
+      "family_index": 2,
+      "per_family_instance_index": 0,
+      "run_name": "OMP_SIMD_1000/iterations:1000",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 1000,
+      "real_time": 5.9751478098332882e-03,
+      "cpu_time": 5.9750558820000008e-03,
+      "time_unit": "s"
+    }
+  ]
+}
