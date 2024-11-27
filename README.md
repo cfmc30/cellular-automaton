@@ -19,3 +19,5 @@ chmod 755 CA
 # Reference
 <https://github.com/gerzin/parallel-cellular-automata> <br>
 <https://github.com/charlietangora/gif-h>
+<https://github.com/google/benchmark.git>
+<https://github.com/lakshayg/google_benchmark_plot.git>
